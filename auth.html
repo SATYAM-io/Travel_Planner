@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Sign Up - Wandr</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=1600');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(11, 15, 26, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 0;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-primary);
+            border-radius: var(--r-xl);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 440px;
+            overflow: hidden;
+            padding: var(--sp-2xl);
+            margin: var(--sp-lg);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: var(--sp-xl);
+        }
+
+        .auth-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--sp-sm);
+            font-family: var(--font-display);
+            font-size: var(--text-3xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            margin-bottom: var(--sp-xs);
+        }
+
+        .auth-brand i {
+            color: var(--clr-accent);
+        }
+
+        /* Tabs */
+        .auth-tabs {
+            display: flex;
+            position: relative;
+            margin-bottom: var(--sp-xl);
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: var(--sp-sm) var(--sp-md);
+            font-weight: 600;
+            font-size: var(--text-md);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            border-radius: var(--r-md);
+        }
+
+        .auth-tab.active {
+            color: var(--text-primary);
+        }
+
+        .tab-bg {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            background: var(--bg-primary);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+
+        .auth-tabs[data-active="signup"] .tab-bg {
+            transform: translateX(100%);
+        }
+
+        /* Forms Wrapper with CSS Grid for Crossfade */
+        .forms-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .auth-form {
+            grid-area: 1 / 1;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+            pointer-events: none;
+        }
+
+        .auth-form.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+            transition-delay: 0.1s; /* smooth stagger */
+        }
+
+        /* Form Fields */
+        .field {
+            margin-bottom: var(--sp-md);
+        }
+
+        .pwd-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .pwd-wrapper .field__input {
+            padding-right: 44px;
+            width: 100%;
+        }
+
+        .pwd-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--r-sm);
+            transition: background var(--dur-fast), color var(--dur-fast);
+        }
+        
+        .pwd-toggle:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .field__input.error {
+            border-color: #E53E3E !important;
+            box-shadow: 0 0 0 1px #E53E3E !important;
+        }
+        
+        .error-msg-inline {
+            color: #E53E3E;
+            font-size: var(--text-xs);
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* Password Strength */
+        .pwd-meter {
+            height: 4px;
+            background: var(--border);
+            border-radius: var(--r-pill);
+            margin-top: var(--sp-sm);
+            display: flex;
+            gap: 4px;
+        }
+
+        .pwd-seg {
+            flex: 1;
+            border-radius: var(--r-pill);
+            background: var(--border);
+            transition: background var(--dur-base);
+        }
+
+        .pwd-hint {
+            font-size: var(--text-xs);
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: block;
+            transition: color var(--dur-fast);
+        }
+
+        /* Global Messages */
+        .form-message {
+            padding: var(--sp-md);
+            border-radius: var(--r-md);
+            margin-bottom: var(--sp-md);
+            font-size: var(--text-sm);
+            display: none;
+            align-items: flex-start;
+            gap: var(--sp-sm);
+        }
+
+        .form-message.visible {
+            display: flex;
+            animation: slide-down 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-message i {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+
+        .msg-error {
+            background: #FFF5F5;
+            color: #C53030;
+            border: 1px solid #FEB2B2;
+        }
+        
+        [data-theme="dark"] .msg-error {
+            background: rgba(229, 62, 62, 0.1);
+            border-color: rgba(229, 62, 62, 0.3);
+            color: #FC8181;
+        }
+
+        .msg-success {
+            background: #F0FFF4;
+            color: #2F855A;
+            border: 1px solid #9AE6B4;
+        }
+        
+        [data-theme="dark"] .msg-success {
+            background: rgba(56, 161, 105, 0.1);
+            border-color: rgba(56, 161, 105, 0.3);
+            color: #68D391;
+        }
+
+        @keyframes slide-down {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons & Spinners */
+        .btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--sp-sm);
+            transition: all var(--dur-fast);
+            margin-top: var(--sp-sm);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn.loading .spinner {
+            display: block;
+        }
+        
+        .btn.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Social Buttons */
+        .btn-social {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: var(--sp-md);
+            border-radius: var(--r-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--dur-fast);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--sp-sm);
+        }
+
+        .btn-social:hover {
+            background: var(--border);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: var(--sp-lg) 0;
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: var(--sp-md);
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: var(--sp-md);
+        }
+
+        /* Theme Toggle overrides */
+        .theme-toggle-fixed {
+            position: fixed;
+            top: var(--sp-xl);
+            right: var(--sp-xl);
+            z-index: 10;
+            background: var(--bg-card);
+            padding: var(--sp-sm);
+            border-radius: var(--r-full);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle-fixed:hover {
+            background: var(--bg-hover);
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="theme-toggle" class="theme-toggle-fixed" aria-label="Toggle theme">
+        <i data-lucide="sun" class="theme-toggle__sun"></i>
+        <i data-lucide="moon" class="theme-toggle__moon" style="display: none;"></i>
+    </button>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <a href="index.html" class="auth-brand">
+                <i data-lucide="compass"></i> <span>Wandr</span>
+            </a>
+            <p style="color: var(--text-muted); font-size: var(--text-sm); margin-top: var(--sp-xs);">Your AI-powered journey starts here.</p>
+        </div>
+
+        <div class="auth-tabs" id="auth-tabs-container" data-active="login">
+            <div class="tab-bg"></div>
+            <div class="auth-tab active" data-target="login">Log In</div>
+            <div class="auth-tab" data-target="signup">Sign Up</div>
+        </div>
+
+        <!-- Global Messages -->
+        <div id="global-msg" class="form-message msg-error">
+            <i data-lucide="alert-circle" id="msg-icon"></i>
+            <span id="msg-text">Error message goes here</span>
+        </div>
+
+        <div class="forms-wrapper">
+            <!-- Login Form -->
+            <form id="login" class="auth-form active" novalidate>
+                <div class="field">
+                    <label class="field__label" for="login-email">Email Address</label>
+                    <input type="email" id="login-email" class="field__input" placeholder="you@example.com" required>
+                    <div class="error-msg-inline">Please enter a valid email address.</div>
+                </div>
+                <div class="field">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label class="field__label" for="login-pwd">Password</label>
+                    </div>
+                    <div class="pwd-wrapper">
+                        <input type="password" id="login-pwd" class="field__input" placeholder="••••••••" required>
+                        <button type="button" class="pwd-toggle" aria-label="Toggle password visibility">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <div class="error-msg-inline">Password is required.</div>
+                </div>
+                <button type="submit" class="btn btn--primary btn--full" id="login-btn">
+                    <span class="btn-text">Log In</span>
+                    <div class="spinner"></div>
+                </button>
+
+
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup" class="auth-form" novalidate>
+                <div class="grid grid-2" style="gap: var(--sp-md);">
+                    <div class="field" style="margin-bottom: 0;">
+                        <label class="field__label" for="reg-first">First Name</label>
+                        <input type="text" id="reg-first" class="field__input" placeholder="Jane" required>
+                        <div class="error-msg-inline">Required.</div>
+                    </div>
+                    <div class="field" style="margin-bottom: 0;">
+                        <label class="field__label" for="reg-last">Last Name</label>
+                        <input type="text" id="reg-last" class="field__input" placeholder="Doe" required>
+                        <div class="error-msg-inline">Required.</div>
+                    </div>
+                </div>
+                <div class="field" style="margin-top: var(--sp-md);">
+                    <label class="field__label" for="reg-email">Email Address</label>
+                    <input type="email" id="reg-email" class="field__input" placeholder="you@example.com" required>
+                    <div class="error-msg-inline">Valid email required.</div>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="reg-pwd">Password</label>
+                    <div class="pwd-wrapper">
+                        <input type="password" id="reg-pwd" class="field__input" placeholder="Create a password" required oninput="checkStrength(this.value)">
+                        <button type="button" class="pwd-toggle" aria-label="Toggle password visibility">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <div class="pwd-meter">
+                        <div class="pwd-seg" id="seg-1"></div>
+                        <div class="pwd-seg" id="seg-2"></div>
+                        <div class="pwd-seg" id="seg-3"></div>
+                        <div class="pwd-seg" id="seg-4"></div>
+                    </div>
+                    <span class="pwd-hint" id="pwd-hint">Must be at least 8 characters.</span>
+                    <div class="error-msg-inline" id="pwd-error">Password must be at least 8 characters.</div>
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--full" id="signup-btn">
+                    <span class="btn-text">Create Account</span>
+                    <div class="spinner"></div>
+                </button>
+                
+
+            </form>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Elements
+        const tabs = document.querySelectorAll('.auth-tab');
+        const forms = document.querySelectorAll('.auth-form');
+        const tabsContainer = document.getElementById('auth-tabs-container');
+        const globalMsg = document.getElementById('global-msg');
+        const msgText = document.getElementById('msg-text');
+        const msgIcon = document.getElementById('msg-icon');
+        const pwdToggles = document.querySelectorAll('.pwd-toggle');
+
+        // Tab Switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.target;
+                
+                // Update tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                tabsContainer.setAttribute('data-active', target);
+                
+                // Update forms
+                forms.forEach(f => f.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+                
+                // Reset states
+                hideMessage();
+                clearValidation();
+            });
+        });
+
+        // Password Visibility Toggle
+        pwdToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const input = toggle.previousElementSibling;
+                const icon = toggle.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                } else {
+                    input.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye');
+                }
+                lucide.createIcons();
+            });
+        });
+
+        function showMessage(text, type = 'error') {
+            msgText.textContent = text;
+            
+            if (type === 'success') {
+                globalMsg.className = 'form-message msg-success visible';
+                msgIcon.setAttribute('data-lucide', 'check-circle');
+            } else {
+                globalMsg.className = 'form-message msg-error visible';
+                msgIcon.setAttribute('data-lucide', 'alert-circle');
+            }
+            lucide.createIcons();
+        }
+
+        function hideMessage() {
+            globalMsg.classList.remove('visible');
+        }
+
+        function clearValidation() {
+            document.querySelectorAll('.field__input').forEach(input => {
+                input.classList.remove('error');
+                const errorMsg = input.parentElement.classList.contains('pwd-wrapper') ? 
+                    input.parentElement.parentElement.querySelector('.error-msg-inline') : 
+                    input.parentElement.querySelector('.error-msg-inline');
+                if(errorMsg) errorMsg.style.display = 'none';
+            });
+        }
+
+        function validateForm(formId) {
+            let isValid = true;
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input[required]');
+            
+            inputs.forEach(input => {
+                let valid = true;
+                if (!input.value.trim()) {
+                    valid = false;
+                } else if (input.type === 'email') {
+                    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    valid = re.test(input.value);
+                } else if (input.id === 'reg-pwd') {
+                    valid = input.value.length >= 8;
+                }
+                
+                let errorMsg;
+                if (input.parentElement.classList.contains('pwd-wrapper')) {
+                    errorMsg = input.parentElement.parentElement.querySelector('.error-msg-inline');
+                } else {
+                    errorMsg = input.parentElement.querySelector('.error-msg-inline');
+                }
+                
+                if (!valid) {
+                    input.classList.add('error');
+                    if(errorMsg) errorMsg.style.display = 'block';
+                    isValid = false;
+                } else {
+                    input.classList.remove('error');
+                    if(errorMsg) errorMsg.style.display = 'none';
+                }
+            });
+
+            return isValid;
+        }
+
+        // Input listeners to clear errors on typing
+        document.querySelectorAll('.field__input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.classList.contains('error')) {
+                    input.classList.remove('error');
+                    let errorMsg;
+                    if (input.parentElement.classList.contains('pwd-wrapper')) {
+                        errorMsg = input.parentElement.parentElement.querySelector('.error-msg-inline');
+                    } else {
+                        errorMsg = input.parentElement.querySelector('.error-msg-inline');
+                    }
+                    if(errorMsg) errorMsg.style.display = 'none';
+                }
+            });
+        });
+
+        // Password Strength
+        window.checkStrength = function(pwd) {
+            const seg1 = document.getElementById('seg-1');
+            const seg2 = document.getElementById('seg-2');
+            const seg3 = document.getElementById('seg-3');
+            const seg4 = document.getElementById('seg-4');
+            const hint = document.getElementById('pwd-hint');
+
+            // Reset
+            [seg1, seg2, seg3, seg4].forEach(s => s.style.background = 'var(--border)');
+
+            let strength = 0;
+            if (pwd.length >= 8) strength += 1;
+            if (pwd.match(/[A-Z]/)) strength += 1;
+            if (pwd.match(/[0-9]/)) strength += 1;
+            if (pwd.match(/[^A-Za-z0-9]/)) strength += 1;
+
+            if (pwd.length === 0) {
+                hint.innerText = "Must be at least 8 characters.";
+                hint.style.color = 'var(--text-muted)';
+                return;
+            }
+
+            if (pwd.length < 8) {
+                hint.innerText = "Must be at least 8 characters.";
+                hint.style.color = '#E53E3E';
+            } else {
+                if (strength >= 1) { seg1.style.background = '#E53E3E'; hint.innerText = "Weak"; hint.style.color = '#E53E3E'; }
+                if (strength >= 2) { seg2.style.background = '#DD6B20'; hint.innerText = "Fair"; hint.style.color = '#DD6B20'; }
+                if (strength >= 3) { seg3.style.background = '#D69E2E'; hint.innerText = "Good"; hint.style.color = '#D69E2E'; }
+                if (strength >= 4) { seg4.style.background = '#38A169'; hint.innerText = "Strong"; hint.style.color = '#38A169'; }
+            }
+        };
+
+        // Handle Login
+        document.getElementById('login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage();
+            
+            if (!validateForm('login')) return;
+
+            const email = document.getElementById('login-email').value;
+            const pwd = document.getElementById('login-pwd').value;
+            const btn = document.getElementById('login-btn');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                    email,
+                    password: pwd,
+                });
+
+                if (error) throw error;
+                
+                // Redirect to index
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } catch (err) {
+                showMessage(err.message || 'Failed to log in.', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // Handle Signup
+        document.getElementById('signup').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage();
+            
+            if (!validateForm('signup')) return;
+
+            const firstName = document.getElementById('reg-first').value;
+            const lastName = document.getElementById('reg-last').value;
+            const email = document.getElementById('reg-email').value;
+            const pwd = document.getElementById('reg-pwd').value;
+            const btn = document.getElementById('signup-btn');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email,
+                    password: pwd,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName
+                        }
+                    }
+                });
+
+                if (error) throw error;
+                
+                showMessage('Account created successfully! You can now log in.', 'success');
+                document.getElementById('signup').reset();
+                window.checkStrength('');
+                
+                // Switch to login tab after 2 seconds
+                setTimeout(() => {
+                    document.querySelector('.auth-tab[data-target="login"]').click();
+                }, 2000);
+            } catch (err) {
+                showMessage(err.message || 'Failed to sign up.', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
